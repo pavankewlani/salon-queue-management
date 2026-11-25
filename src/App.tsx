@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import { QueueProvider } from './context/QueueContext';
@@ -64,15 +65,17 @@ const AppRoutes: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <QueueProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </QueueProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <QueueProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </QueueProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 };
 

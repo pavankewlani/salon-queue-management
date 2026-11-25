@@ -7,6 +7,7 @@
     @apply bg-charcoal text-gray-100 font-sans;
     background-color: #1F2937;
     color: #F9FAFB;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   /* Custom scrollbar for clean luxury feel */
@@ -42,4 +43,120 @@
   background: linear-gradient(135deg, #F5D061 0%, #D4A017 50%, #B8860B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ==============================================================================
+   LIGHT THEME DESIGN PALETTE OVERRIDES
+   Activates when html.light class is applied via ThemeContext
+   ============================================================================== */
+html.light body {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #F1F5F9 !important;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1 !important;
+}
+
+html.light .bg-charcoal {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+html.light .bg-charcoal-700 {
+  background-color: #E2E8F0 !important;
+  color: #1E293B !important;
+}
+
+html.light .bg-charcoal-800 {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+html.light .bg-charcoal-900 {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+html.light .bg-onyx {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light .border-charcoal-600,
+html.light .border-charcoal-700 {
+  border-color: #CBD5E1 !important;
+}
+
+html.light .border-charcoal-500 {
+  border-color: #94A3B8 !important;
+}
+
+html.light .text-gray-100 {
+  color: #0F172A !important;
+}
+
+html.light .text-gray-200 {
+  color: #1E293B !important;
+}
+
+html.light .text-gray-300 {
+  color: #334155 !important;
+}
+
+html.light .text-gray-400 {
+  color: #64748B !important;
+}
+
+html.light .text-gray-500 {
+  color: #94A3B8 !important;
+}
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #E2E8F0 !important;
+}
+
+html.light footer {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #D4A017 !important;
+  outline: none;
+}
+
+html.light table thead {
+  background-color: #F1F5F9 !important;
+  color: #475569 !important;
+}
+
+html.light table tbody tr:hover {
+  background-color: #F8FAFC !important;
+}
+
+html.light .bg-charcoal-800\/50 {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+}
+
+html.light .bg-onyx\/90,
+html.light .bg-onyx\/80 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
 }

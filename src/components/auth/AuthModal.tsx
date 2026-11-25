@@ -42,7 +42,7 @@ export const AuthModal: React.FC = () => {
   const [signupPhone, setSignupPhone] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupRole, setSignupRole] = useState<UserRole>('customer');
+  const [signupRole] = useState<UserRole>('customer');
   const [signupError, setSignupError] = useState('');
 
   if (!isAuthModalOpen) return null;
@@ -283,21 +283,12 @@ export const AuthModal: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
-                <ShieldCheck size={13} className="text-gold" />
-                <span>Account Role</span>
-              </label>
-              <select
-                value={signupRole}
-                onChange={(e) => setSignupRole(e.target.value as UserRole)}
-                className="w-full bg-onyx border border-charcoal-600 rounded-xl px-3.5 py-2 text-xs font-semibold text-gray-200 focus:outline-none focus:border-gold transition-colors"
-              >
-                <option value="customer">👤 Customer (Private Digital Pass)</option>
-                <option value="receptionist">📋 Receptionist (Front Desk Coordinator)</option>
-                <option value="barber">✂️ Stylist / Barber (Chair Station)</option>
-                <option value="admin">👑 Owner / Admin (Full Salon Management)</option>
-              </select>
+            <div className="p-2.5 rounded-xl bg-onyx border border-charcoal-600 flex items-center justify-between text-xs">
+              <span className="text-gray-400 font-medium">Account Type:</span>
+              <span className="font-bold text-gold flex items-center gap-1.5">
+                <User size={13} />
+                <span>Customer / Patron (Personal Digital Pass)</span>
+              </span>
             </div>
 
             <Button

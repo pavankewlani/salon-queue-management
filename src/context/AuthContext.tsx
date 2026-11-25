@@ -176,7 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; initialUser?: A
     phone,
     email,
     password,
-    role = 'customer',
+    role: _role = 'customer',
   }: {
     name: string;
     phone: string;
@@ -218,14 +218,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; initialUser?: A
       };
     }
 
+    // Public registrations are strictly customer accounts; staff accounts are pre-provisioned
+    const assignedRole: UserRole = 'customer';
+
     const newUser: AuthUser & { password: string } = {
       id: `user-${Date.now()}`,
       name: name.trim(),
       phone: cleanPhone,
       email: cleanEmail,
       password,
-      role,
-      avatar: role === 'admin' ? '👑' : role === 'receptionist' ? '📋' : role === 'barber' ? '✂️' : '👤',
+      role: assignedRole,
+      avatar: '👤',
       createdAt: new Date().toISOString(),
     };
 

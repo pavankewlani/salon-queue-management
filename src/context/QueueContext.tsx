@@ -38,6 +38,7 @@ interface QueueContextType {
   activeWaitingCount: number;
   estimatedGeneralWaitMins: number;
   isOnlineQueueOpen: boolean;
+  currentTime: Date;
   toggleSimulatedQueueHours: () => void;
   addTokenToQueue: (data: {
     customerName: string;
@@ -120,7 +121,7 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     };
   });
 
-  const [simulatedForceOpen, setSimulatedForceOpen] = useState<boolean>(() => {
+  const [, setSimulatedForceOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_FORCE_OPEN);
     return saved !== null ? saved === 'true' : true;
   });
@@ -286,10 +287,98 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     };
   }, []);
 
+  // Live clock ticker for real-time queue cutoff and countdowns
+  const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Auto-finish service when service duration has elapsed (does not wait for button press)
+  useEffect(() => {
+    const checkServiceDurations = () => {
+      const currentQueue = queueRef.current || queue;
+      const currentBarbers = barbersRef.current || barbers;
+      const now = Date.now();
+
+      const inServiceTokens = currentQueue.filter(
+        (t) => t.status === 'IN_SERVICE' && t.serviceStartedAt
+      );
+
+      if (inServiceTokens.length === 0) return;
+
+      let hasUpdates = false;
+      let nextQueue = [...currentQueue];
+      let nextBarbers = [...currentBarbers];
+
+      for (const token of inServiceTokens) {
+        const startTime = new Date(token.serviceStartedAt!).getTime();
+        const totalDurationMins =
+          token.services?.reduce((acc, s) => acc + (s.durationMinutes || 0), 0) || 15;
+        const totalDurationMs = totalDurationMins * 60 * 1000;
+
+        // If elapsed time has reached or exceeded scheduled duration, auto-finish service!
+        if (now - startTime >= totalDurationMs) {
+          hasUpdates = true;
+          const nowIso = new Date().toISOString();
+
+          nextQueue = nextQueue.map((t) =>
+            t.id === token.id
+              ? {
+                  ...t,
+                  status: 'COMPLETED' as TokenStatus,
+                  serviceCompletedAt: nowIso,
+                }
+              : t
+          );
+
+          const targetBarberId = token.assignedBarberId;
+          if (targetBarberId) {
+            nextBarbers = nextBarbers.map((b) =>
+              b.id === targetBarberId
+                ? {
+                    ...b,
+                    status: 'IDLE' as const,
+                    currentCustomerTokenId: undefined,
+                    currentCustomerName: undefined,
+                  }
+                : b
+            );
+          }
+
+          // Persist auto-completion to Supabase
+          updateQueueEntryInSupabase(token.id, {
+            status: 'COMPLETED',
+            serviceCompletedAt: nowIso,
+          });
+          if (targetBarberId) {
+            updateBarberInSupabase(targetBarberId, {
+              status: 'IDLE',
+              currentCustomerTokenId: undefined,
+              currentCustomerName: undefined,
+            });
+          }
+        }
+      }
+
+      if (hasUpdates) {
+        queueRef.current = nextQueue;
+        setQueue(nextQueue);
+        barbersRef.current = nextBarbers;
+        setBarbers(nextBarbers);
+      }
+    };
+
+    const timer = setInterval(checkServiceDurations, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const toggleSimulatedQueueHours = () => {
-    const nextVal = !simulatedForceOpen;
-    setSimulatedForceOpen(nextVal);
-    localStorage.setItem(STORAGE_KEY_FORCE_OPEN, String(nextVal));
+    const nextVal = !isOnlineQueueOpen;
+    setOnlineQueueForceStatus(nextVal);
   };
 
   // Active non-terminal statuses: WAITING, UP_NEXT, CALLED
@@ -302,27 +391,29 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
   const idleBarbers = barbers.filter((b) => b.status === 'IDLE');
   const estimatedGeneralWaitMins = idleBarbers.length > 0 ? 5 : Math.max(10, activeWaitingCount * 12);
 
-  // Check 30-minute online cutoff
+  // Check 30-minute online cutoff and operating hours (auto-closes based on real-time clock)
   const checkOnlineQueueOpen = (): boolean => {
     if (salonConfig.isEmergencyPaused) return false;
+    // Explicit owner manual override in Admin Settings takes precedence
     if (salonConfig.forceOnlineQueueOpen !== undefined && salonConfig.forceOnlineQueueOpen !== null) {
       return salonConfig.forceOnlineQueueOpen;
     }
     if (overrideOnlineOpen !== undefined) return overrideOnlineOpen;
-    if (simulatedForceOpen !== undefined) return simulatedForceOpen;
 
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const [openHour, openMin] = salonConfig.openingTime.split(':').map(Number);
-    const [closeHour, closeMin] = salonConfig.closingTime.split(':').map(Number);
+    // Automatic schedule based on real-time clock
+    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+    const [openHour, openMin] = (salonConfig.openingTime || '09:00').split(':').map(Number);
+    const [closeHour, closeMin] = (salonConfig.closingTime || '21:00').split(':').map(Number);
 
     const openMinutes = openHour * 60 + openMin;
-    const cutoffMinutes = closeHour * 60 + closeMin - salonConfig.onlineCutoffMinutesBeforeClosing;
+    const cutoffMinutes = closeHour * 60 + closeMin - (salonConfig.onlineCutoffMinutesBeforeClosing ?? 30);
 
     return currentMinutes >= openMinutes && currentMinutes < cutoffMinutes;
   };
 
-  const isOnlineQueueOpen = checkOnlineQueueOpen();
+  const isOnlineQueueOpen = useMemo(() => {
+    return checkOnlineQueueOpen();
+  }, [salonConfig, overrideOnlineOpen, currentTime]);
 
   // Invariant 04: One active position per phone number
   const isPhoneActiveInQueue = (phone: string): { isActive: boolean; activeToken?: QueueToken } => {
@@ -1008,6 +1099,7 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
         activeWaitingCount,
         estimatedGeneralWaitMins,
         isOnlineQueueOpen,
+        currentTime,
         toggleSimulatedQueueHours,
         addTokenToQueue,
         addWalkIn,

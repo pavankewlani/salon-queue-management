@@ -83,6 +83,16 @@ export const BarberScreen: React.FC = () => {
     }
   }, [currentToken]);
 
+  // Chair Stopwatch Calculations & Auto-Completion countdown
+  const totalPlannedMinutes = useMemo(() => {
+    if (!currentToken) return 15;
+    return currentToken.services.reduce((acc, s) => acc + s.durationMinutes, 0) || 15;
+  }, [currentToken]);
+
+  const totalPlannedSeconds = totalPlannedMinutes * 60;
+  const remainingSeconds = Math.max(0, totalPlannedSeconds - stopwatchSeconds);
+  const serviceProgressPercent = Math.min(100, Math.round((stopwatchSeconds / Math.max(1, totalPlannedSeconds)) * 100));
+
   // Format Stopwatch time: HH:MM:SS
   const formatStopwatch = (totalSeconds: number): string => {
     const hrs = Math.floor(totalSeconds / 3600);
@@ -309,17 +319,39 @@ export const BarberScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* Chair Stopwatch Timer */}
-            <div className="p-4 rounded-2xl bg-charcoal-800 border-2 border-charcoal-600 text-center space-y-1 shadow-inner">
-              <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold flex items-center justify-center gap-1.5">
-                <Clock size={14} className="text-gold" />
-                <span>{t('barber_chair_stopwatch')}</span>
-              </p>
+            {/* Chair Stopwatch & Auto-Finish Countdown Timer */}
+            <div className="p-4 rounded-2xl bg-charcoal-800 border-2 border-charcoal-600 text-center space-y-2.5 shadow-inner">
+              <div className="flex items-center justify-between text-xs text-gray-400 px-1">
+                <span className="uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                  <Clock size={14} className="text-gold" />
+                  <span>{t('barber_chair_stopwatch')}</span>
+                </span>
+                {isServing && (
+                  <span className="text-gold font-mono font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-gold animate-ping"></span>
+                    <span>Auto-finish in {Math.floor(remainingSeconds / 60)}m {remainingSeconds % 60}s</span>
+                  </span>
+                )}
+              </div>
+
               <p className="text-4xl sm:text-5xl font-mono font-bold text-emerald-400 tracking-wider">
                 {formatStopwatch(stopwatchSeconds)}
               </p>
-              <p className="text-[11px] text-gray-400">
-                {t('barber_est_total')}: {currentToken.services.reduce((acc, s) => acc + s.durationMinutes, 0)} minutes
+
+              {/* Progress bar showing service elapsed vs total duration */}
+              {isServing && (
+                <div className="w-full bg-charcoal-700 h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-emerald-500 via-gold to-emerald-400 h-full transition-all duration-1000"
+                    style={{ width: `${serviceProgressPercent}%` }}
+                  />
+                </div>
+              )}
+
+              <p className="text-[11px] text-gray-400 flex items-center justify-center gap-2">
+                <span>{t('barber_est_total')}: {totalPlannedMinutes} mins</span>
+                <span>•</span>
+                <span className="text-gray-300">Auto-completes after service time (no button press required)</span>
               </p>
             </div>
 

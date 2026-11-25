@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageToggle } from '../ui/LanguageToggle';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { Scissors, Sparkles, User, LogOut } from 'lucide-react';
 import { isSupabaseConfigured, checkSupabaseConnection, SupabaseConnectionStatus } from '../../lib/supabase';
 
@@ -158,6 +159,7 @@ export const Header: React.FC = () => {
           )}
 
           <LanguageToggle />
+          <ThemeToggle />
         </div>
       </div>
     </header>

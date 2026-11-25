@@ -26,6 +26,7 @@ export const JoinQueueScreen: React.FC = () => {
   const {
     services,
     barbers,
+    salonConfig,
     isOnlineQueueOpen,
     toggleSimulatedQueueHours,
     isPhoneActiveInQueue,
@@ -97,6 +98,19 @@ export const JoinQueueScreen: React.FC = () => {
     const seatDate = new Date(Date.now() + estimatedWaitMins * 60 * 1000);
     return seatDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }, [estimatedWaitMins]);
+
+  // Dynamic cutoff display time string
+  const cutoffTimeDisplay = useMemo(() => {
+    const [closeHour, closeMin] = (salonConfig?.closingTime || '21:00').split(':').map(Number);
+    const cutoffMinutes = salonConfig?.onlineCutoffMinutesBeforeClosing ?? 30;
+    const totalCloseMins = closeHour * 60 + closeMin;
+    const cutoffTotalMins = totalCloseMins - cutoffMinutes;
+    const cutoffH = Math.floor(cutoffTotalMins / 60);
+    const cutoffM = cutoffTotalMins % 60;
+    const period = cutoffH >= 12 ? 'PM' : 'AM';
+    const displayH = cutoffH % 12 || 12;
+    return `${String(displayH).padStart(2, '0')}:${String(cutoffM).padStart(2, '0')} ${period}`;
+  }, [salonConfig]);
 
   // Service toggle with strict 3-service maximum enforcement
   const handleToggleService = (service: ServiceItem) => {
@@ -236,7 +250,7 @@ export const JoinQueueScreen: React.FC = () => {
         <div className="p-3.5 rounded-xl bg-onyx border border-charcoal-600 flex items-center justify-between text-xs text-gray-300">
           <span className="flex items-center gap-2">
             <Clock size={15} className="text-gold" />
-            <span>Online Queue open until 08:30 PM (30m Cutoff)</span>
+            <span>Online Queue open until {cutoffTimeDisplay} ({salonConfig.onlineCutoffMinutesBeforeClosing ?? 30}m Cutoff)</span>
           </span>
           <div className="flex items-center gap-2">
             <Badge variant="in_service" size="sm" pulse>Open</Badge>
