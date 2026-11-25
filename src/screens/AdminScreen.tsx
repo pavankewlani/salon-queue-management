@@ -49,6 +49,8 @@ export const AdminScreen: React.FC = () => {
     addBarber,
     updateSalonConfig,
     setOnlineQueueForceStatus,
+    isAutoAcceptActive,
+    toggleAutoAccept,
     todayServedCount,
     todayNoShowCount,
     todayAvgWaitMins,
@@ -741,6 +743,40 @@ export const AdminScreen: React.FC = () => {
                 <span>
                   <strong>Invariant 09 (Walk-ins Allowed):</strong> Receptionists can register walk-in patrons at any time, even after online cutoff or closure.
                 </span>
+              </div>
+            </div>
+          </Card>
+
+          {/* Autonomous Chair Service Mode */}
+          <Card title="Autonomous Chair Mode" subtitle="Auto-Accept Next Patron & Auto-Finish Predefined Duration">
+            <div className="space-y-3 text-xs">
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-charcoal-700/80 border border-charcoal-600">
+                <div>
+                  <p className="font-bold text-gray-100">
+                    Auto-Accept Next Waiting Customer
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    When active, idle chairs automatically accept the next eligible customer and begin service without manual button clicks.
+                  </p>
+                </div>
+                <Badge variant={isAutoAcceptActive ? 'in_service' : 'waiting'} size="md" pulse={isAutoAcceptActive}>
+                  {isAutoAcceptActive ? 'ENABLED' : 'PAUSED'}
+                </Badge>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant={isAutoAcceptActive ? 'secondary' : 'primary'}
+                  onClick={() => {
+                    toggleAutoAccept();
+                    showToast(isAutoAcceptActive ? 'Auto-Accept PAUSED' : 'Auto-Accept ENABLED');
+                  }}
+                  className="gap-1.5 py-2 text-xs"
+                >
+                  <Sparkles size={14} className={isAutoAcceptActive ? 'text-amber-400' : 'text-gold'} />
+                  <span>{isAutoAcceptActive ? 'Pause Auto-Accept' : 'Enable Auto-Accept Mode'}</span>
+                </Button>
               </div>
             </div>
           </Card>

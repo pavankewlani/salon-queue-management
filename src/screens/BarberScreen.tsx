@@ -15,7 +15,8 @@ import {
   Check,
   UserCheck,
   Phone,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from 'lucide-react';
 
 export const BarberScreen: React.FC = () => {
@@ -30,6 +31,8 @@ export const BarberScreen: React.FC = () => {
     callNextForBarber,
     markNoShow,
     toggleBarberBreak,
+    isAutoAcceptActive,
+    toggleAutoAccept,
   } = useQueue();
 
   // Find active barber matching URL parameter (or default to first barber)
@@ -210,6 +213,21 @@ export const BarberScreen: React.FC = () => {
               </option>
             ))}
           </select>
+
+          {/* Auto-Accept Toggle */}
+          <button
+            type="button"
+            onClick={toggleAutoAccept}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+              isAutoAcceptActive
+                ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300 shadow-sm'
+                : 'bg-charcoal-700 border-charcoal-600 text-gray-400 hover:text-gray-200'
+            }`}
+            title="When active, idle chairs automatically accept the next customer in line"
+          >
+            <Sparkles size={13} className={isAutoAcceptActive ? 'text-emerald-400' : 'text-gray-400'} />
+            <span>Auto-Accept: {isAutoAcceptActive ? 'ON' : 'OFF'}</span>
+          </button>
 
           {/* Available / On Break Toggle */}
           <Button

@@ -39,6 +39,8 @@ interface QueueContextType {
   estimatedGeneralWaitMins: number;
   isOnlineQueueOpen: boolean;
   currentTime: Date;
+  isAutoAcceptActive: boolean;
+  toggleAutoAccept: () => void;
   toggleSimulatedQueueHours: () => void;
   addTokenToQueue: (data: {
     customerName: string;
@@ -91,12 +93,14 @@ interface QueueProviderProps {
   children: React.ReactNode;
   initialConfig?: Partial<SalonConfiguration>;
   overrideOnlineOpen?: boolean;
+  autoAccept?: boolean;
 }
 
 export const QueueProvider: React.FC<QueueProviderProps> = ({
   children,
   initialConfig,
   overrideOnlineOpen,
+  autoAccept,
 }) => {
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
@@ -297,22 +301,36 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Auto-finish service when service duration has elapsed (does not wait for button press)
+  // Autonomous Chair Mode (Auto-Accept Next Patron & Auto-Finish Service)
+  const isAutoAcceptActive =
+    autoAccept !== undefined
+      ? autoAccept
+      : typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test'
+      ? (salonConfig.autoAcceptNextCustomer ?? false)
+      : (salonConfig.autoAcceptNextCustomer ?? true);
+
+  const toggleAutoAccept = () => {
+    const nextVal = !isAutoAcceptActive;
+    updateSalonConfig({ autoAcceptNextCustomer: nextVal });
+  };
+
+  // Continuous Service & Queue Automation:
+  // 1. Auto-finish service when pre-defined duration completes (no button press needed)
+  // 2. Auto-accept next eligible waiting customer into any idle chairs (FCFS + preference)
   useEffect(() => {
-    const checkServiceDurations = () => {
+    const processQueueAutomation = () => {
       const currentQueue = queueRef.current || queue;
       const currentBarbers = barbersRef.current || barbers;
       const now = Date.now();
 
-      const inServiceTokens = currentQueue.filter(
-        (t) => t.status === 'IN_SERVICE' && t.serviceStartedAt
-      );
-
-      if (inServiceTokens.length === 0) return;
-
       let hasUpdates = false;
       let nextQueue = [...currentQueue];
       let nextBarbers = [...currentBarbers];
+
+      // Phase 1: Auto-finish in-service tokens whose predefined duration has elapsed
+      const inServiceTokens = nextQueue.filter(
+        (t) => t.status === 'IN_SERVICE' && t.serviceStartedAt
+      );
 
       for (const token of inServiceTokens) {
         const startTime = new Date(token.serviceStartedAt!).getTime();
@@ -364,6 +382,58 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
         }
       }
 
+      // Phase 2: Auto-accept next eligible customer into any idle chairs (FCFS + preference)
+      if (isAutoAcceptActive) {
+        const idleBarbers = nextBarbers.filter((b) => b.status === 'IDLE');
+
+        for (const barber of idleBarbers) {
+          // Find earliest waiting or up-next customer matching barber preference
+          const eligibleIdx = nextQueue.findIndex(
+            (t) =>
+              (t.status === 'WAITING' || t.status === 'UP_NEXT') &&
+              (t.barberPreference === 'ANY' || t.barberPreference === barber.id)
+          );
+
+          if (eligibleIdx >= 0) {
+            hasUpdates = true;
+            const targetToken = nextQueue[eligibleIdx];
+            const nowIso = new Date().toISOString();
+
+            const updatedToken: QueueToken = {
+              ...targetToken,
+              status: 'IN_SERVICE',
+              assignedBarberId: barber.id,
+              assignedBarberName: barber.name,
+              chairNumber: barber.chairNumber,
+              serviceStartedAt: nowIso,
+            };
+
+            const updatedBarber: BarberStation = {
+              ...barber,
+              status: 'IN_SERVICE',
+              currentCustomerTokenId: targetToken.id,
+              currentCustomerName: targetToken.customerName,
+            };
+
+            nextQueue[eligibleIdx] = updatedToken;
+            nextBarbers = nextBarbers.map((b) => (b.id === barber.id ? updatedBarber : b));
+
+            // Persist to Supabase
+            updateQueueEntryInSupabase(targetToken.id, {
+              status: 'IN_SERVICE',
+              assignedBarberId: barber.id,
+              chairNumber: barber.chairNumber,
+              serviceStartedAt: nowIso,
+            });
+            updateBarberInSupabase(barber.id, {
+              status: 'IN_SERVICE',
+              currentCustomerTokenId: targetToken.id,
+              currentCustomerName: targetToken.customerName,
+            });
+          }
+        }
+      }
+
       if (hasUpdates) {
         queueRef.current = nextQueue;
         setQueue(nextQueue);
@@ -372,9 +442,10 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
       }
     };
 
-    const timer = setInterval(checkServiceDurations, 1000);
+    processQueueAutomation();
+    const timer = setInterval(processQueueAutomation, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isAutoAcceptActive]);
 
   const toggleSimulatedQueueHours = () => {
     const nextVal = !isOnlineQueueOpen;
@@ -1100,6 +1171,8 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
         estimatedGeneralWaitMins,
         isOnlineQueueOpen,
         currentTime,
+        isAutoAcceptActive,
+        toggleAutoAccept,
         toggleSimulatedQueueHours,
         addTokenToQueue,
         addWalkIn,

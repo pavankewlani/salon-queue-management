@@ -14,11 +14,11 @@ import { AdminScreen } from '../screens/AdminScreen';
 
 const renderApp = (
   ui: React.ReactElement,
-  { initialRoute = '/', overrideOnlineOpen = true } = {}
+  { initialRoute = '/', overrideOnlineOpen = true, autoAccept }: { initialRoute?: string; overrideOnlineOpen?: boolean; autoAccept?: boolean } = {}
 ) => {
   return render(
     <LanguageProvider>
-      <QueueProvider overrideOnlineOpen={overrideOnlineOpen}>
+      <QueueProvider overrideOnlineOpen={overrideOnlineOpen} autoAccept={autoAccept}>
         <MemoryRouter initialEntries={[initialRoute]}>
           <Routes>
             <Route path="/status/:id" element={<MyStatusScreen />} />
@@ -619,5 +619,31 @@ describe('SENIOR QA ENGINEER AUDIT — SALON QUEUE MANAGEMENT SYSTEM', () => {
     expect(firstJoin.success).toBe(true);
     expect(secondJoin.success).toBe(false);
     expect(secondJoin.error).toContain('already has an active queue ticket');
+  });
+
+  // =========================================================================
+  // SCENARIO 25: AUTONOMOUS CHAIR MODE (AUTO-ACCEPT & AUTO-FINISH)
+  // =========================================================================
+  it('Scenario 25: Autonomous chair mode auto-accepts next waiting patron into idle chair and auto-finishes service after duration', async () => {
+    let capturedContext: ReturnType<typeof useQueue> | null = null;
+    renderApp(
+      <QueueInspector
+        onInspect={(ctx) => {
+          capturedContext = ctx;
+        }}
+      />,
+      { autoAccept: true }
+    );
+
+    // Initial state: Chetan Solanki (Chair 3) is IDLE
+    // S-4 is WAITING in line with preference 'ANY'
+    // With autoAccept enabled, Chetan automatically accepts S-4 into service!
+    await waitFor(() => {
+      const chetan = capturedContext!.barbers.find((b) => b.id === 'barber-chetan');
+      const s4 = capturedContext!.queue.find((t) => t.id === 'S-4');
+      expect(chetan?.status).toBe('IN_SERVICE');
+      expect(s4?.status).toBe('IN_SERVICE');
+      expect(s4?.assignedBarberId).toBe('barber-chetan');
+    });
   });
 });

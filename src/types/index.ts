@@ -69,6 +69,7 @@ export interface SalonConfiguration {
   strictOneTokenPerPhone: boolean;
   isEmergencyPaused: boolean;
   forceOnlineQueueOpen?: boolean | null;
+  autoAcceptNextCustomer?: boolean;
 }
 
 // User Authentication & Role-Based Access Control (RBAC)

@@ -16,7 +16,8 @@ import {
   Tablet,
   UserCheck,
   AlertCircle,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 
 export const ReceptionScreen: React.FC = () => {
@@ -32,6 +33,8 @@ export const ReceptionScreen: React.FC = () => {
     cancelToken,
     toggleBarberBreak,
     addWalkIn,
+    isAutoAcceptActive,
+    toggleAutoAccept,
   } = useQueue();
 
   // Tablet Landscape Filter Tabs: 'all' | 'waiting' | 'in_service' | 'terminal'
@@ -192,6 +195,20 @@ export const ReceptionScreen: React.FC = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span className="font-bold text-emerald-400 text-[11px]">Synced &lt; 5s</span>
           </div>
+
+          <button
+            type="button"
+            onClick={toggleAutoAccept}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+              isAutoAcceptActive
+                ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300 shadow-sm'
+                : 'bg-charcoal-700 border-charcoal-600 text-gray-400 hover:text-gray-200'
+            }`}
+            title="Toggle autonomous queue mode: Idle chairs automatically accept the next waiting patron"
+          >
+            <Sparkles size={13} className={isAutoAcceptActive ? 'text-emerald-400' : 'text-gray-400'} />
+            <span>Auto-Accept: {isAutoAcceptActive ? 'ON' : 'OFF'}</span>
+          </button>
         </div>
       </div>
 
