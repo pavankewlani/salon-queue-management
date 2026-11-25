@@ -354,6 +354,8 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
           );
 
           const targetBarberId = token.assignedBarberId;
+          // 2-minute cooldown: barber rests before auto-accepting the next customer
+          const cooldownUntil = new Date(now + 2 * 60 * 1000).toISOString();
           if (targetBarberId) {
             nextBarbers = nextBarbers.map((b) =>
               b.id === targetBarberId
@@ -362,6 +364,7 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
                     status: 'IDLE' as const,
                     currentCustomerTokenId: undefined,
                     currentCustomerName: undefined,
+                    cooldownUntil,
                   }
                 : b
             );
@@ -377,6 +380,7 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
               status: 'IDLE',
               currentCustomerTokenId: undefined,
               currentCustomerName: undefined,
+              cooldownUntil,
             });
           }
         }
@@ -384,7 +388,12 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
 
       // Phase 2: Auto-accept next eligible customer into any idle chairs (FCFS + preference)
       if (isAutoAcceptActive) {
-        const idleBarbers = nextBarbers.filter((b) => b.status === 'IDLE');
+        // Only consider barbers that are IDLE AND whose 2-minute cooldown has elapsed
+        const idleBarbers = nextBarbers.filter(
+          (b) =>
+            b.status === 'IDLE' &&
+            (!b.cooldownUntil || now >= new Date(b.cooldownUntil).getTime())
+        );
 
         for (const barber of idleBarbers) {
           // Find earliest waiting or up-next customer matching barber preference
@@ -927,6 +936,8 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     }
 
     const nowIso = new Date().toISOString();
+    // 2-minute cooldown so barber rests before next auto-accept
+    const cooldownUntil = new Date(Date.now() + 2 * 60 * 1000).toISOString();
 
     const nextQueue = currentQueue.map((t) =>
       t.id === tokenId
@@ -943,6 +954,7 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
             status: 'IDLE' as const,
             currentCustomerTokenId: undefined,
             currentCustomerName: undefined,
+            cooldownUntil,
           }
         : b
     );

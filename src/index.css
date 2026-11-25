@@ -46,117 +46,199 @@
 }
 
 /* ==============================================================================
-   LIGHT THEME DESIGN PALETTE OVERRIDES
+   LIGHT THEME DESIGN PALETTE — Luxurious Warm Cream
    Activates when html.light class is applied via ThemeContext
+   Palette:
+     Background canvas  : #F5F0E8  (warm ivory)
+     Card surfaces      : #FFFDF7  (parchment white)
+     Header / nav       : #FFFFFF  with gold bottom border
+     Accent gold        : #B8860B  (deeper gold, better contrast on light)
+     Borders            : #E6DDD0  (warm taupe)
+     Heading text       : #1A1208  (near-black warm)
+     Body text          : #3D3220  (dark warm brown)
+     Muted text         : #7A6A52  (warm mid-tone)
    ============================================================================== */
+
+/* ── Base canvas & typography ─────────────────────────────────────── */
 html.light body {
-  background-color: #F8FAFC !important;
-  color: #0F172A !important;
+  background-color: #F5F0E8 !important;
+  color: #1A1208 !important;
 }
 
+/* ── Scrollbar ────────────────────────────────────────────────────── */
 html.light ::-webkit-scrollbar-track {
-  background: #F1F5F9 !important;
+  background: #EDE8DF !important;
 }
-
 html.light ::-webkit-scrollbar-thumb {
-  background: #CBD5E1 !important;
+  background: #C9BBA8 !important;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #B8860B !important;
 }
 
+/* ── Background utility overrides ────────────────────────────────── */
 html.light .bg-charcoal {
-  background-color: #F1F5F9 !important;
-  color: #0F172A !important;
+  background-color: #F5F0E8 !important;
+  color: #1A1208 !important;
 }
-
 html.light .bg-charcoal-700 {
-  background-color: #E2E8F0 !important;
-  color: #1E293B !important;
+  background-color: #EDE8DF !important;
+  color: #3D3220 !important;
 }
-
+html.light .bg-charcoal-700\/60,
+html.light .bg-charcoal-700\/80 {
+  background-color: rgba(237, 232, 223, 0.85) !important;
+}
 html.light .bg-charcoal-800 {
-  background-color: #FFFFFF !important;
-  color: #0F172A !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  background-color: #FFFDF7 !important;
+  color: #1A1208 !important;
+  box-shadow: 0 4px 16px rgba(100, 70, 20, 0.08), 0 1px 4px rgba(100, 70, 20, 0.05);
 }
-
+html.light .bg-charcoal-800\/50 {
+  background-color: rgba(255, 253, 247, 0.90) !important;
+}
 html.light .bg-charcoal-900 {
-  background-color: #F8FAFC !important;
-  color: #0F172A !important;
+  background-color: #F0EAE0 !important;
+  color: #1A1208 !important;
 }
-
 html.light .bg-onyx {
-  background-color: #FFFFFF !important;
-  color: #0F172A !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  background-color: #FFFDF7 !important;
+  color: #1A1208 !important;
+  box-shadow: 0 1px 4px rgba(100, 70, 20, 0.08);
+}
+html.light .bg-onyx\/90,
+html.light .bg-onyx\/80 {
+  background-color: rgba(255, 253, 247, 0.96) !important;
 }
 
+/* ── Border overrides ────────────────────────────────────────────── */
 html.light .border-charcoal-600,
 html.light .border-charcoal-700 {
-  border-color: #CBD5E1 !important;
+  border-color: #E6DDD0 !important;
 }
-
 html.light .border-charcoal-500 {
-  border-color: #94A3B8 !important;
+  border-color: #C9BBA8 !important;
 }
 
+/* ── Text overrides ──────────────────────────────────────────────── */
 html.light .text-gray-100 {
-  color: #0F172A !important;
+  color: #1A1208 !important;
 }
-
 html.light .text-gray-200 {
-  color: #1E293B !important;
+  color: #2C2010 !important;
 }
-
 html.light .text-gray-300 {
-  color: #334155 !important;
+  color: #3D3220 !important;
 }
-
 html.light .text-gray-400 {
-  color: #64748B !important;
+  color: #7A6A52 !important;
 }
-
 html.light .text-gray-500 {
-  color: #94A3B8 !important;
+  color: #A0906D !important;
 }
 
+/* ── Header / Footer ─────────────────────────────────────────────── */
 html.light header {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  border-color: #E2E8F0 !important;
+  background-color: rgba(255, 253, 247, 0.97) !important;
+  border-color: #E6DDD0 !important;
+  box-shadow: 0 1px 8px rgba(100, 70, 20, 0.08) !important;
+  /* Thin gold accent line under the header */
+  border-bottom: 2px solid #D4A017 !important;
 }
-
 html.light footer {
-  background-color: #FFFFFF !important;
-  border-color: #E2E8F0 !important;
+  background-color: #EDE8DF !important;
+  border-color: #E6DDD0 !important;
 }
 
+/* ── Form controls ───────────────────────────────────────────────── */
 html.light input,
 html.light select,
 html.light textarea {
-  background-color: #FFFFFF !important;
-  color: #0F172A !important;
-  border-color: #CBD5E1 !important;
+  background-color: #FFFDF7 !important;
+  color: #1A1208 !important;
+  border-color: #C9BBA8 !important;
 }
-
 html.light input:focus,
 html.light select:focus,
 html.light textarea:focus {
-  border-color: #D4A017 !important;
+  border-color: #B8860B !important;
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15) !important;
   outline: none;
 }
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #A0906D !important;
+}
 
+/* ── Tables ──────────────────────────────────────────────────────── */
 html.light table thead {
-  background-color: #F1F5F9 !important;
-  color: #475569 !important;
+  background-color: #EDE8DF !important;
+  color: #7A6A52 !important;
 }
-
 html.light table tbody tr:hover {
-  background-color: #F8FAFC !important;
+  background-color: #F0EAE0 !important;
 }
 
-html.light .bg-charcoal-800\/50 {
-  background-color: rgba(241, 245, 249, 0.8) !important;
+/* ── Gold glow (subtle warm shadow on light) ─────────────────────── */
+html.light .gold-glow {
+  box-shadow: 0 0 12px rgba(184, 134, 11, 0.20) !important;
+}
+html.light .gold-glow-hover:hover {
+  box-shadow: 0 0 18px rgba(184, 134, 11, 0.28) !important;
 }
 
-html.light .bg-onyx\/90,
-html.light .bg-onyx\/80 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+/* ── Cards get a soft lift ───────────────────────────────────────── */
+html.light .rounded-2xl,
+html.light .rounded-xl {
+  box-shadow: 0 2px 10px rgba(100, 70, 20, 0.07) !important;
+}
+
+/* ── Badges & pills on light background ─────────────────────────── */
+html.light .bg-charcoal-700.px-2 {
+  background-color: #EDE8DF !important;
+  color: #7A6A52 !important;
+}
+
+/* ── Amber / cooldown tones look better on light ─────────────────── */
+html.light .bg-amber-950\/60 {
+  background-color: rgba(251, 243, 219, 0.85) !important;
+  border-color: #D4A017 !important;
+}
+html.light .text-amber-300 {
+  color: #B8860B !important;
+}
+html.light .text-amber-400 {
+  color: #A07808 !important;
+}
+html.light .text-amber-400\/80 {
+  color: rgba(160, 120, 8, 0.80) !important;
+}
+
+/* ── Emerald success tones on light ─────────────────────────────── */
+html.light .bg-emerald-950\/80 {
+  background-color: rgba(220, 252, 231, 0.90) !important;
+}
+html.light .text-emerald-300 {
+  color: #166534 !important;
+}
+html.light .text-emerald-400 {
+  color: #15803D !important;
+}
+html.light .border-emerald-500\/60,
+html.light .border-emerald-600\/50 {
+  border-color: rgba(21, 128, 61, 0.35) !important;
+}
+
+/* ── Red / danger tones on light ─────────────────────────────────── */
+html.light .bg-red-950\/80 {
+  background-color: rgba(254, 226, 226, 0.90) !important;
+}
+html.light .text-red-300 {
+  color: #991B1B !important;
+}
+html.light .text-red-400 {
+  color: #B91C1C !important;
+}
+html.light .border-red-600\/50 {
+  border-color: rgba(185, 28, 28, 0.35) !important;
 }

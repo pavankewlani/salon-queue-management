@@ -56,6 +56,8 @@ export interface BarberStation {
   avatar?: string;
   shiftStart: string;
   shiftEnd: string;
+  /** ISO timestamp: barber cannot auto-accept new customers until this time (2-min cooldown after service) */
+  cooldownUntil?: string;
 }
 
 export interface SalonConfiguration {

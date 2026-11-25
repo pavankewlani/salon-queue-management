@@ -70,6 +70,8 @@ export const BarberScreen: React.FC = () => {
 
   // Live Stopwatch State (elapsed seconds since serviceStartedAt)
   const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
+  // Cooldown countdown: seconds remaining in 2-min rest between customers
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   useEffect(() => {
     if (currentToken && currentToken.status === 'IN_SERVICE' && currentToken.serviceStartedAt) {
@@ -85,6 +87,21 @@ export const BarberScreen: React.FC = () => {
       setStopwatchSeconds(0);
     }
   }, [currentToken]);
+
+  // Cooldown countdown ticker (runs every second when barber has cooldownUntil set)
+  useEffect(() => {
+    const updateCooldown = () => {
+      if (activeBarber?.cooldownUntil) {
+        const remaining = Math.max(0, Math.ceil((new Date(activeBarber.cooldownUntil).getTime() - Date.now()) / 1000));
+        setCooldownSeconds(remaining);
+      } else {
+        setCooldownSeconds(0);
+      }
+    };
+    updateCooldown();
+    const interval = setInterval(updateCooldown, 1000);
+    return () => clearInterval(interval);
+  }, [activeBarber?.cooldownUntil]);
 
   // Chair Stopwatch Calculations & Auto-Completion countdown
   const totalPlannedMinutes = useMemo(() => {
@@ -172,6 +189,7 @@ export const BarberScreen: React.FC = () => {
   const isCalling = currentToken?.status === 'CALLED';
   const isIdle = activeBarber.status === 'IDLE' && !currentToken;
   const isOnBreak = activeBarber.status === 'ON_BREAK';
+  const isInCooldown = isIdle && cooldownSeconds > 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn pb-12">
@@ -431,8 +449,31 @@ export const BarberScreen: React.FC = () => {
               </p>
             </div>
 
+            {/* 2-Minute Cooldown Banner */}
+            {isInCooldown && (
+              <div className="mx-auto max-w-xs p-4 rounded-2xl bg-amber-950/60 border border-amber-600/40 text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-amber-300">
+                  <Coffee size={16} className="text-amber-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Barber Resting</span>
+                </div>
+                <p className="text-3xl font-mono font-black text-amber-300">
+                  {String(Math.floor(cooldownSeconds / 60)).padStart(2, '0')}:{String(cooldownSeconds % 60).padStart(2, '0')}
+                </p>
+                <p className="text-[11px] text-amber-400/80">
+                  Next patron will be auto-accepted after rest period
+                </p>
+                {/* Cooldown progress bar */}
+                <div className="w-full bg-charcoal-700 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-amber-400 h-full transition-all duration-1000"
+                    style={{ width: `${Math.round((cooldownSeconds / 120) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Call Next Customer Button */}
-            {isIdle && upcomingQueue.length > 0 && (
+            {isIdle && !isInCooldown && upcomingQueue.length > 0 && (
               <Button
                 size="lg"
                 variant="primary"
