@@ -296,21 +296,25 @@ export const ReceptionScreen: React.FC = () => {
                 {/* Current Customer Card inside Chair Station */}
                 <div className="my-3 p-3 rounded-xl bg-charcoal-700/80 border border-charcoal-600 text-xs space-y-1">
                   <p className="text-[10px] text-gray-400 uppercase font-semibold">Active Chair Occupancy</p>
-                  {barber.currentCustomerTokenId ? (
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono font-bold text-gold text-sm">
-                          #{barber.currentCustomerTokenId}
-                        </span>
-                        <span className="text-[11px] text-emerald-400 font-semibold">
-                          {isCalling ? '10m Grace Window' : 'In Service'}
-                        </span>
+                  {(isServing || isCalling) && barber.currentCustomerTokenId ? (() => {
+                    const activeToken = queue.find((t) => t.id === barber.currentCustomerTokenId);
+                    const displayName = activeToken?.customerName || barber.currentCustomerName || 'Patron';
+                    return (
+                      <div className="space-y-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-gold text-sm">
+                            #{barber.currentCustomerTokenId}
+                          </span>
+                          <span className="text-[11px] text-emerald-400 font-semibold">
+                            {isCalling ? '10m Grace Window' : 'In Service'}
+                          </span>
+                        </div>
+                        <p className="text-gray-200 font-medium truncate">
+                          {displayName}
+                        </p>
                       </div>
-                      <p className="text-gray-200 font-medium truncate">
-                        {barber.currentCustomerName || 'Patron'}
-                      </p>
-                    </div>
-                  ) : (
+                    );
+                  })() : (
                     <p className="text-gray-400 italic py-1">
                       {isOnBreak ? 'Barber on 15m break' : 'Chair ready for client'}
                     </p>

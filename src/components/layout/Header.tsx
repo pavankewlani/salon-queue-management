@@ -34,28 +34,28 @@ export const Header: React.FC = () => {
   ].filter((link) => link.visible);
 
   return (
-    <header className="sticky top-0 z-50 bg-onyx/90 backdrop-blur-md border-b border-charcoal-600 px-4 sm:px-8 py-3.5">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+    <header className="sticky top-0 z-50 bg-onyx/90 backdrop-blur-md border-b border-charcoal-600 px-3 sm:px-6 py-2.5">
+      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-2.5 lg:gap-4">
         {/* Brand */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-light via-gold to-gold-dark flex items-center justify-center text-onyx shadow-gold-glow group-hover:scale-105 transition-transform">
-            <Scissors size={20} className="stroke-[2.5]" />
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold-light via-gold to-gold-dark flex items-center justify-center text-onyx shadow-gold-glow group-hover:scale-105 transition-transform shrink-0">
+            <Scissors size={18} className="stroke-[2.5]" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-lg sm:text-xl tracking-wide text-gray-100 group-hover:text-gold transition-colors">
+          <div className="whitespace-nowrap">
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-base sm:text-lg tracking-tight text-gray-100 group-hover:text-gold transition-colors">
                 {t('brand_name')}
               </span>
-              <Sparkles size={14} className="text-gold" />
+              <Sparkles size={13} className="text-gold shrink-0" />
             </div>
-            <p className="text-[11px] text-gray-400 font-medium">
+            <p className="text-[10px] text-gray-400 font-medium leading-tight">
               {t('brand_tagline')}
             </p>
           </div>
         </Link>
 
         {/* Navigation Bar */}
-        <nav className="flex items-center flex-wrap justify-center gap-1 sm:gap-2">
+        <nav className="flex items-center flex-wrap xl:flex-nowrap justify-center gap-1">
           {navLinks.map((link) => {
             const isActive =
               location.pathname === link.to ||
@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
+                className={`whitespace-nowrap px-2.5 py-1.5 text-xs xl:text-[13px] font-semibold rounded-lg transition-all ${
                   isActive
                     ? 'bg-gold text-onyx shadow-sm'
                     : 'text-gray-300 hover:text-white hover:bg-charcoal-600'
@@ -80,11 +80,11 @@ export const Header: React.FC = () => {
         </nav>
 
         {/* Right Utility: Status + Auth Section + Language Toggle */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Cloud Database Indicator */}
           {dbStatus && (
             <div
-              className={`hidden sm:flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all ${
+              className={`hidden sm:flex items-center gap-1.5 whitespace-nowrap text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all ${
                 dbStatus.isConnected
                   ? 'bg-emerald-950/70 text-emerald-300 border-emerald-600/50'
                   : dbStatus.isConfigured
@@ -100,7 +100,7 @@ export const Header: React.FC = () => {
               }
             >
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full shrink-0 ${
                   dbStatus.isConnected
                     ? 'bg-emerald-400 animate-pulse'
                     : dbStatus.isConfigured
@@ -118,21 +118,21 @@ export const Header: React.FC = () => {
             </div>
           )}
 
-          <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-700/50">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div className="hidden 2xl:flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-700/50">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
             {t('salon_status_open')}
           </div>
 
           {/* User Authentication Badge */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-1.5 bg-charcoal-800 border border-charcoal-600 rounded-xl px-2.5 py-1">
+            <div className="flex items-center gap-1.5 bg-charcoal-800 border border-charcoal-600 rounded-xl px-2.5 py-1 whitespace-nowrap">
               <Link
                 to="/login"
                 className="flex items-center gap-1.5 text-xs text-gray-200 hover:text-gold transition-colors"
                 title={`Logged in as ${user.name} (${user.role})`}
               >
                 <span className="text-sm">{user.avatar || '👤'}</span>
-                <span className="font-bold max-w-[80px] sm:max-w-[110px] truncate">
+                <span className="font-bold max-w-[80px] sm:max-w-[100px] truncate">
                   {user.name.split(' ')[0]}
                 </span>
                 <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-gold/20 text-gold border border-gold/30">
@@ -141,7 +141,7 @@ export const Header: React.FC = () => {
               </Link>
               <button
                 onClick={logout}
-                className="p-1 rounded-lg text-gray-400 hover:text-red-400 hover:bg-charcoal-700 transition-colors ml-1"
+                className="p-1 rounded-lg text-gray-400 hover:text-red-400 hover:bg-charcoal-700 transition-colors ml-0.5"
                 title="Sign Out"
                 aria-label="Sign Out"
               >
@@ -151,7 +151,7 @@ export const Header: React.FC = () => {
           ) : (
             <button
               onClick={() => openAuthModal('login')}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-gold/10 hover:bg-gold/20 text-gold border border-gold/40 hover:border-gold transition-all"
+              className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 text-xs font-bold rounded-xl bg-gold/10 hover:bg-gold/20 text-gold border border-gold/40 hover:border-gold transition-all"
             >
               <User size={14} />
               <span>{language === 'gu' ? 'સાઇન ઇન' : 'Sign In'}</span>

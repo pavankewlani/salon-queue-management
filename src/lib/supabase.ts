@@ -173,7 +173,9 @@ export async function updateBarberInSupabase(
     if (updates.shiftEnd !== undefined) payload.shift_end = updates.shiftEnd;
     if (updates.name !== undefined) payload.name = updates.name;
     if (updates.chairNumber !== undefined) payload.chair_number = updates.chairNumber;
-    if (updates.currentCustomerTokenId !== undefined) payload.current_customer_token_id = updates.currentCustomerTokenId;
+    if ('currentCustomerTokenId' in updates) {
+      payload.current_customer_token_id = updates.currentCustomerTokenId ?? null;
+    }
 
     const { error } = await supabase
       .from('barber_stations')

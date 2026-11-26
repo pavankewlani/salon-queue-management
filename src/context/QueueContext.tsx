@@ -984,6 +984,11 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
       status: 'COMPLETED',
       serviceCompletedAt: nowIso,
     });
+    updateBarberInSupabase(barberId, {
+      status: 'IDLE',
+      currentCustomerTokenId: undefined,
+      currentCustomerName: undefined,
+    });
 
     return { success: true };
   };
@@ -1022,6 +1027,13 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     }
 
     updateQueueEntryInSupabase(tokenId, { status: 'NO_SHOW' });
+    if (token.assignedBarberId) {
+      updateBarberInSupabase(token.assignedBarberId, {
+        status: 'IDLE',
+        currentCustomerTokenId: undefined,
+        currentCustomerName: undefined,
+      });
+    }
     return { success: true };
   };
 
@@ -1064,6 +1076,13 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     }
 
     updateQueueEntryInSupabase(tokenId, { status: 'CANCELLED' });
+    if (token.assignedBarberId) {
+      updateBarberInSupabase(token.assignedBarberId, {
+        status: 'IDLE',
+        currentCustomerTokenId: undefined,
+        currentCustomerName: undefined,
+      });
+    }
     return { success: true };
   };
 
