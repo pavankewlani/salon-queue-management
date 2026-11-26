@@ -70,8 +70,10 @@ export const BarberScreen: React.FC = () => {
 
   // Live Stopwatch State (elapsed seconds since serviceStartedAt)
   const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
-  // Cooldown countdown: seconds remaining in 2-min rest between customers
+  // Cooldown countdown: seconds remaining in 1-min rest between customers
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  // Break countdown: seconds remaining in the 15-min auto-break
+  const [breakSeconds, setBreakSeconds] = useState(0);
 
   useEffect(() => {
     if (currentToken && currentToken.status === 'IN_SERVICE' && currentToken.serviceStartedAt) {
@@ -102,6 +104,22 @@ export const BarberScreen: React.FC = () => {
     const interval = setInterval(updateCooldown, 1000);
     return () => clearInterval(interval);
   }, [activeBarber?.cooldownUntil]);
+
+  // Break countdown ticker — shows time remaining in 15-min auto-break
+  useEffect(() => {
+    const updateBreak = () => {
+      if (activeBarber?.breakStartedAt && activeBarber.status === 'ON_BREAK') {
+        const breakEnd = new Date(activeBarber.breakStartedAt).getTime() + 15 * 60 * 1000;
+        const remaining = Math.max(0, Math.ceil((breakEnd - Date.now()) / 1000));
+        setBreakSeconds(remaining);
+      } else {
+        setBreakSeconds(0);
+      }
+    };
+    updateBreak();
+    const interval = setInterval(updateBreak, 1000);
+    return () => clearInterval(interval);
+  }, [activeBarber?.breakStartedAt, activeBarber?.status]);
 
   // Chair Stopwatch Calculations & Auto-Completion countdown
   const totalPlannedMinutes = useMemo(() => {
@@ -449,24 +467,47 @@ export const BarberScreen: React.FC = () => {
               </p>
             </div>
 
-            {/* 2-Minute Cooldown Banner */}
+            {/* 1-Minute Cooldown Banner (after each customer) */}
             {isInCooldown && (
               <div className="mx-auto max-w-xs p-4 rounded-2xl bg-amber-950/60 border border-amber-600/40 text-center space-y-2">
                 <div className="flex items-center justify-center gap-2 text-amber-300">
                   <Coffee size={16} className="text-amber-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Barber Resting</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">1-Min Rest Break</span>
                 </div>
                 <p className="text-3xl font-mono font-black text-amber-300">
                   {String(Math.floor(cooldownSeconds / 60)).padStart(2, '0')}:{String(cooldownSeconds % 60).padStart(2, '0')}
                 </p>
                 <p className="text-[11px] text-amber-400/80">
-                  Next patron will be auto-accepted after rest period
+                  Next patron auto-accepted after short break
                 </p>
-                {/* Cooldown progress bar */}
+                {/* Cooldown progress bar — 60s total */}
                 <div className="w-full bg-charcoal-700 h-1.5 rounded-full overflow-hidden">
                   <div
                     className="bg-amber-400 h-full transition-all duration-1000"
-                    style={{ width: `${Math.round((cooldownSeconds / 120) * 100)}%` }}
+                    style={{ width: `${Math.round((cooldownSeconds / 60) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 15-Minute Break Timer Banner */}
+            {isOnBreak && breakSeconds > 0 && (
+              <div className="mx-auto max-w-xs p-4 rounded-2xl bg-blue-950/60 border border-blue-600/40 text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-blue-300">
+                  <Coffee size={16} className="text-blue-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider">On Break — Auto-ends in</span>
+                </div>
+                <p className="text-3xl font-mono font-black text-blue-300">
+                  {String(Math.floor(breakSeconds / 60)).padStart(2, '0')}:{String(breakSeconds % 60).padStart(2, '0')}
+                </p>
+                <p className="text-[11px] text-blue-400/80">
+                  Break ends automatically after 15 minutes
+                </p>
+                {/* Break progress bar — 900s total */}
+                <div className="w-full bg-charcoal-700 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-blue-400 h-full transition-all duration-1000"
+                    style={{ width: `${Math.round((breakSeconds / 900) * 100)}%` }}
                   />
                 </div>
               </div>

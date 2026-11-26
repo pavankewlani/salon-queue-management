@@ -242,3 +242,131 @@ html.light .text-red-400 {
 html.light .border-red-600\/50 {
   border-color: rgba(185, 28, 28, 0.35) !important;
 }
+
+/* ==============================================================================
+   LIGHT THEME — TYPOGRAPHY & FONT IMPROVEMENTS
+   Ensures text in every element looks sharp, warm, and legible on cream bg
+   ============================================================================== */
+
+/* ── Global font rendering improvements on light ─────────────────── */
+html.light body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1;
+  letter-spacing: 0.01em;
+}
+
+/* ── Headings: crisp dark-brown on cream ─────────────────────────── */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
+  color: #1A1208 !important;
+  letter-spacing: -0.01em;
+}
+
+/* ── Paragraph & span text improvements ──────────────────────────── */
+html.light p,
+html.light span:not(.badge-exempt),
+html.light li {
+  color: #3D3220;
+}
+
+/* ── Font mono (token numbers, prices, timers) ──────────────────── */
+html.light .font-mono {
+  color: #1A1208 !important;
+  font-weight: 700;
+}
+
+/* ── Gold text — deepen on light for readability ─────────────────── */
+html.light .text-gold,
+html.light [class*="text-gold"] {
+  color: #A07000 !important;
+}
+
+/* ── Uppercase tracking labels (small caps style) ───────────────── */
+html.light .uppercase.tracking-wider,
+html.light .uppercase.tracking-widest {
+  color: #7A6A52 !important;
+  letter-spacing: 0.08em;
+}
+
+/* ── Button text clarity ─────────────────────────────────────────── */
+html.light button {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ── Badge text: keep readable on light surfaces ────────────────── */
+html.light .badge,
+html.light [class*="rounded-full"][class*="text-xs"],
+html.light [class*="rounded-lg"][class*="text-xs"] {
+  font-weight: 700;
+}
+
+/* ── Input & textarea font improvements ─────────────────────────── */
+html.light input,
+html.light select,
+html.light textarea {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 1px 3px rgba(100, 70, 20, 0.08) !important;
+}
+
+/* ── Table typography ────────────────────────────────────────────── */
+html.light table {
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+}
+html.light table thead th {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #7A6A52 !important;
+}
+html.light table tbody td {
+  color: #3D3220 !important;
+}
+
+/* ── Card title & subtitle ───────────────────────────────────────── */
+html.light .card-title {
+  color: #1A1208 !important;
+  font-weight: 800;
+}
+html.light .card-subtitle {
+  color: #7A6A52 !important;
+  font-weight: 400;
+}
+
+/* ── Nav/header links ────────────────────────────────────────────── */
+html.light a {
+  color: #A07000;
+}
+html.light a:hover {
+  color: #1A1208;
+}
+
+/* ── Option elements in selects on light ────────────────────────── */
+html.light option {
+  background-color: #FFFDF7 !important;
+  color: #1A1208 !important;
+}
+
+/* ── Blue cooldown tones on light ─────────────────────────────────── */
+html.light .bg-blue-950\/60 {
+  background-color: rgba(219, 234, 254, 0.85) !important;
+  border-color: #93C5FD !important;
+}
+html.light .text-blue-300 {
+  color: #1D4ED8 !important;
+}
+html.light .text-blue-400 {
+  color: #2563EB !important;
+}
+html.light .text-blue-400\/80 {
+  color: rgba(37, 99, 235, 0.80) !important;
+}
+html.light .border-blue-600\/40 {
+  border-color: rgba(37, 99, 235, 0.30) !important;
+}

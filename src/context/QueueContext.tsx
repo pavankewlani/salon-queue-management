@@ -60,6 +60,7 @@ interface QueueContextType {
   markNoShow: (tokenId: string) => { success: boolean; error?: string };
   cancelToken: (tokenId: string) => { success: boolean; error?: string };
   toggleBarberBreak: (barberId: string) => { success: boolean; error?: string };
+  submitFeedback: (tokenId: string, rating: number, comment?: string) => { success: boolean; error?: string };
   isPhoneActiveInQueue: (phone: string) => { isActive: boolean; activeToken?: QueueToken };
   findTokenByQuery: (query: string) => QueueToken | undefined;
   getBarberWaitMins: (barberId: string) => number;
@@ -354,8 +355,8 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
           );
 
           const targetBarberId = token.assignedBarberId;
-          // 2-minute cooldown: barber rests before auto-accepting the next customer
-          const cooldownUntil = new Date(now + 2 * 60 * 1000).toISOString();
+          // 1-minute cooldown: barber rests before auto-accepting the next customer
+          const cooldownUntil = new Date(now + 1 * 60 * 1000).toISOString();
           if (targetBarberId) {
             nextBarbers = nextBarbers.map((b) =>
               b.id === targetBarberId
@@ -388,7 +389,7 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
 
       // Phase 2: Auto-accept next eligible customer into any idle chairs (FCFS + preference)
       if (isAutoAcceptActive) {
-        // Only consider barbers that are IDLE AND whose 2-minute cooldown has elapsed
+        // Only consider barbers that are IDLE AND whose 1-minute cooldown has elapsed
         const idleBarbers = nextBarbers.filter(
           (b) =>
             b.status === 'IDLE' &&
@@ -440,6 +441,24 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
               currentCustomerName: targetToken.customerName,
             });
           }
+        }
+      }
+
+      // Phase 3: Auto-end barber break after 15 minutes
+      const barbersOnBreak = nextBarbers.filter(
+        (b) => b.status === 'ON_BREAK' && b.breakStartedAt
+      );
+      for (const barber of barbersOnBreak) {
+        const breakStart = new Date(barber.breakStartedAt!).getTime();
+        const breakDurationMs = 15 * 60 * 1000; // 15 minutes
+        if (now - breakStart >= breakDurationMs) {
+          hasUpdates = true;
+          nextBarbers = nextBarbers.map((b) =>
+            b.id === barber.id
+              ? { ...b, status: 'IDLE' as const, breakStartedAt: undefined }
+              : b
+          );
+          updateBarberInSupabase(barber.id, { status: 'IDLE', breakStartedAt: undefined });
         }
       }
 
@@ -936,8 +955,8 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     }
 
     const nowIso = new Date().toISOString();
-    // 2-minute cooldown so barber rests before next auto-accept
-    const cooldownUntil = new Date(Date.now() + 2 * 60 * 1000).toISOString();
+    // 1-minute cooldown so barber rests before next auto-accept
+    const cooldownUntil = new Date(Date.now() + 1 * 60 * 1000).toISOString();
 
     const nextQueue = currentQueue.map((t) =>
       t.id === tokenId
@@ -1048,7 +1067,30 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
     return { success: true };
   };
 
-  // Toggle barber break
+  // Submit customer feedback after service completion
+  const submitFeedback = (
+    tokenId: string,
+    rating: number,
+    comment?: string
+  ): { success: boolean; error?: string } => {
+    const currentQueue = queueRef.current || queue;
+    const token = currentQueue.find((t) => t.id === tokenId);
+    if (!token) return { success: false, error: 'Token not found.' };
+    if (token.status !== 'COMPLETED') {
+      return { success: false, error: 'Feedback can only be submitted after service is completed.' };
+    }
+    if (rating < 1 || rating > 5) {
+      return { success: false, error: 'Rating must be between 1 and 5.' };
+    }
+    const nextQueue = currentQueue.map((t) =>
+      t.id === tokenId ? { ...t, feedbackRating: rating, feedbackComment: comment } : t
+    );
+    queueRef.current = nextQueue;
+    setQueue(nextQueue);
+    return { success: true };
+  };
+
+  // Toggle barber break — sets breakStartedAt so the 15-min auto-end timer works
   const toggleBarberBreak = (barberId: string): { success: boolean; error?: string } => {
     const barber = barbers.find((b) => b.id === barberId);
     if (!barber) return { success: false, error: 'Barber not found.' };
@@ -1057,10 +1099,14 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
       return { success: false, error: 'Cannot toggle break while barber has an active client.' };
     }
 
-    const nextStatus = barber.status === 'ON_BREAK' ? 'IDLE' : 'ON_BREAK';
+    const goingOnBreak = barber.status !== 'ON_BREAK';
+    const nextStatus = goingOnBreak ? 'ON_BREAK' : 'IDLE';
+    const breakStartedAt = goingOnBreak ? new Date().toISOString() : undefined;
 
     setBarbers((prev) =>
-      prev.map((b) => (b.id === barberId ? { ...b, status: nextStatus } : b))
+      prev.map((b) =>
+        b.id === barberId ? { ...b, status: nextStatus, breakStartedAt } : b
+      )
     );
 
     return { success: true };
@@ -1194,6 +1240,7 @@ export const QueueProvider: React.FC<QueueProviderProps> = ({
         markNoShow,
         cancelToken,
         toggleBarberBreak,
+        submitFeedback,
         isPhoneActiveInQueue,
         findTokenByQuery,
         getBarberWaitMins,

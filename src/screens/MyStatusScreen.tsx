@@ -17,13 +17,15 @@ import {
   Scissors,
   MapPin,
   Sparkles,
-  Ban
+  Ban,
+  Star,
+  MessageSquare
 } from 'lucide-react';
 
 export const MyStatusScreen: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t, language } = useLanguage();
-  const { queue, cancelToken, getTokenPosition } = useQueue();
+  const { queue, cancelToken, getTokenPosition, submitFeedback } = useQueue();
   const { user } = useAuth();
 
   const tokenId = (id || 'S-3').toUpperCase().replace('#', '');
@@ -39,6 +41,41 @@ export const MyStatusScreen: React.FC = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelError, setCancelError] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Feedback modal state
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackError, setFeedbackError] = useState('');
+
+  // Auto-open feedback modal when service is COMPLETED and no feedback yet
+  useEffect(() => {
+    if (
+      token?.status === 'COMPLETED' &&
+      !token.feedbackRating &&
+      !feedbackSubmitted
+    ) {
+      const timer = setTimeout(() => setIsFeedbackOpen(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [token?.status, token?.feedbackRating, feedbackSubmitted]);
+
+  const handleSubmitFeedback = () => {
+    if (!feedbackRating) {
+      setFeedbackError('Please select a star rating.');
+      return;
+    }
+    const result = submitFeedback(tokenId, feedbackRating, feedbackComment.trim() || undefined);
+    if (result.success) {
+      setFeedbackSubmitted(true);
+      setIsFeedbackOpen(false);
+      setFeedbackError('');
+    } else {
+      setFeedbackError(result.error || 'Could not submit feedback.');
+    }
+  };
 
   // Auto-refresh interval (every 3.5s for <5s SLA)
   const [, setRefreshTick] = useState(0);
@@ -221,9 +258,38 @@ export const MyStatusScreen: React.FC = () => {
         )}
 
         {token.status === 'COMPLETED' && (
-          <div className="p-3.5 rounded-xl bg-charcoal-700 border border-charcoal-500 text-gray-200 text-xs">
-            <p className="font-bold text-sm text-emerald-400">{t('status_completed')}</p>
-            <p className="mt-0.5">Thank you for visiting Royal Touch Grooming!</p>
+          <div className="space-y-3">
+            <div className="p-3.5 rounded-xl bg-charcoal-700 border border-charcoal-500 text-gray-200 text-xs">
+              <p className="font-bold text-sm text-emerald-400">{t('status_completed')}</p>
+              <p className="mt-0.5">Thank you for visiting Royal Touch Grooming!</p>
+            </div>
+            {/* Show rating if already given; else prompt to rate */}
+            {token.feedbackRating ? (
+              <div className="p-3 rounded-xl bg-charcoal-700/60 border border-charcoal-600 text-center">
+                <p className="text-xs text-gray-400 mb-1">Your Rating</p>
+                <div className="flex items-center justify-center gap-1">
+                  {[1,2,3,4,5].map((s) => (
+                    <Star
+                      key={s}
+                      size={20}
+                      className={s <= (token.feedbackRating || 0) ? 'text-gold fill-gold' : 'text-gray-500'}
+                    />
+                  ))}
+                </div>
+                {token.feedbackComment && (
+                  <p className="text-xs text-gray-300 mt-1 italic">"{token.feedbackComment}"</p>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsFeedbackOpen(true)}
+                className="w-full py-3 px-4 rounded-xl border border-gold/40 bg-gold/10 text-gold text-xs font-bold hover:bg-gold/20 transition-all flex items-center justify-center gap-2"
+              >
+                <Star size={15} />
+                <span>Rate Your Experience</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -364,6 +430,95 @@ export const MyStatusScreen: React.FC = () => {
                 onClick={handleConfirmCancel}
               >
                 {t('cancel_confirm_btn')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feedback Modal (auto-opens after service completes) ─────── */}
+      {isFeedbackOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-onyx rounded-2xl border-2 border-gold/50 shadow-2xl p-6 space-y-5">
+            {/* Header */}
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center gap-2 text-gold">
+                <Star size={22} className="fill-gold" />
+                <h3 className="font-black text-lg text-gray-100">Rate Your Experience</h3>
+              </div>
+              <p className="text-xs text-gray-400">
+                How was your visit to Royal Touch Grooming?
+              </p>
+            </div>
+
+            {/* Star Rating */}
+            <div className="flex items-center justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => { setFeedbackRating(star); setFeedbackError(''); }}
+                  onMouseEnter={() => setFeedbackHover(star)}
+                  onMouseLeave={() => setFeedbackHover(0)}
+                  className="transition-transform hover:scale-110"
+                >
+                  <Star
+                    size={36}
+                    className={
+                      star <= (feedbackHover || feedbackRating)
+                        ? 'text-gold fill-gold'
+                        : 'text-gray-500'
+                    }
+                  />
+                </button>
+              ))}
+            </div>
+            {feedbackRating > 0 && (
+              <p className="text-center text-xs font-bold text-gold">
+                {['', 'Poor 😞', 'Fair 😐', 'Good 🙂', 'Great 😊', 'Excellent! 🌟'][feedbackRating]}
+              </p>
+            )}
+
+            {/* Comment Box */}
+            <div>
+              <label className="text-xs text-gray-400 flex items-center gap-1.5 mb-1.5">
+                <MessageSquare size={12} />
+                <span>Comments (optional)</span>
+              </label>
+              <textarea
+                value={feedbackComment}
+                onChange={(e) => setFeedbackComment(e.target.value)}
+                placeholder="Tell us about your experience…"
+                rows={3}
+                className="w-full bg-charcoal-800 border border-charcoal-600 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-500 resize-none focus:outline-none focus:border-gold"
+              />
+            </div>
+
+            {feedbackError && (
+              <p className="text-xs text-red-400 flex items-center gap-1.5">
+                <AlertCircle size={13} />
+                <span>{feedbackError}</span>
+              </p>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-1">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => setIsFeedbackOpen(false)}
+                className="flex-1"
+              >
+                Skip
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleSubmitFeedback}
+                className="flex-1 gap-2"
+              >
+                <Star size={14} />
+                Submit Rating
               </Button>
             </div>
           </div>

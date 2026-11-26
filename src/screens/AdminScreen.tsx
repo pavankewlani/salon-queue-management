@@ -17,7 +17,7 @@ import {
   Coffee,
   UserCheck,
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   UserX,
   X,
   Lock,
@@ -471,7 +471,7 @@ export const AdminScreen: React.FC = () => {
                         <span className="font-semibold">{service.durationMinutes} Mins</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-emerald-400 font-bold font-mono">
-                        <DollarSign size={13} />
+                        <IndianRupee size={13} />
                         <span>₹{service.priceInr}</span>
                       </div>
                       <div className="text-[11px] text-gray-400 uppercase tracking-wider">
@@ -897,7 +897,7 @@ export const AdminScreen: React.FC = () => {
             {/* 4. Total Queue Revenue */}
             <Card hoverGlow className="text-center py-6">
               <div className="flex items-center justify-center w-11 h-11 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto mb-2">
-                <DollarSign size={22} />
+                <IndianRupee size={22} />
               </div>
               <p className="text-xs uppercase text-gray-400 font-semibold tracking-wider">
                 {t('admin_metric_revenue')}

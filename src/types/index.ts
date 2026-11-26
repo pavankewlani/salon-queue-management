@@ -40,6 +40,10 @@ export interface QueueToken {
   serviceStartedAt?: string;
   serviceCompletedAt?: string;
   estimatedWaitMinutes: number;
+  /** Customer feedback rating (1-5 stars) after service */
+  feedbackRating?: number;
+  /** Customer feedback comment after service */
+  feedbackComment?: string;
 }
 
 export interface BarberStation {
@@ -56,8 +60,10 @@ export interface BarberStation {
   avatar?: string;
   shiftStart: string;
   shiftEnd: string;
-  /** ISO timestamp: barber cannot auto-accept new customers until this time (2-min cooldown after service) */
+  /** ISO timestamp: barber cannot auto-accept new customers until this time (1-min cooldown after service) */
   cooldownUntil?: string;
+  /** ISO timestamp when the barber's break started (auto-ends after 15 minutes) */
+  breakStartedAt?: string;
 }
 
 export interface SalonConfiguration {
